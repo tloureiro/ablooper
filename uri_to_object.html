@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html class="" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title></title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+
+  </style>
+</head>
+<body>
+  <script>
+    // #%7B"title":"","id":"M7lc1UVf-VE","parts":%5B%7B"title":"bonconddsds%20>#&;%20oie%20>%20não%20<anaaaaaa%7D>","range":%5B10,15%5D%7D,%7B"title":"bonconddsds%20>%20oie%20>%20não%20<anaaaaaa%7D>","range":%5B30,33%5D%7D%5D%7D
+
+    let obj = JSON.parse(
+      decodeURI(
+        window.location.hash.substring(1)
+      )
+    );
+
+    obj.parts[0].range[0]++;
+
+    console.log(obj.parts[0].range[0]);
+
+    window.location.hash = encodeURI(JSON.stringify(obj));
+
+
+  </script>
+</body>
+
+</html>

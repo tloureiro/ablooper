@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html class="" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title></title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+
+  </style>
+</head>
+<body>
+
+  <input id="test" type="text"/>
+  <script>
+  
+  class Debouncer {
+    constructor() {
+      this.lastExecuted = null;
+    }
+  
+    run(fn) {
+      if (this.lastExecuted) {
+        clearTimeout(this.lastExecuted);
+        this.lastExecuted = null;
+      }
+
+      this.lastExecuted = setTimeout(fn, 1000);
+    }
+  }
+
+const debouncer = new Debouncer();
+// debouncer.run(() => { console.log('samanti'); });
+// setInterval(() => {debouncer.run(() => { console.log('samanti'); })}, 5000);
+
+document.querySelector('#test').addEventListener('input', () => { debouncer.run(() => { console.log('samanti'); }); });
+  </script>
+</body>
+
+</html>

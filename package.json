@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/tloureiro/ablooper#readme",
   "devDependencies": {
+    "eslint": "^5.15.1",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-html": "^5.0.3",
     "eslint-plugin-import": "^2.16.0"

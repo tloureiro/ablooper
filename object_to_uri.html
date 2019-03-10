@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html class="" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title></title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+
+  </style>
+</head>
+
+<body>
+
+  <script>
+    let obj = {
+      title: "eu < não",
+      id: "M7lc1UVf-VE",
+      parts: [
+        { title: "bonconddsds >#&; oie > não <anaaaaaa}>", "range": [10, 15] },
+        { title: "bonconddsds > oie > não <anaaaaaa}>", "range": [30, 33] },
+      ],
+    };
+
+    console.log(obj);
+
+    let a = encodeURI(JSON.stringify(obj));
+    console.log(a);
+    let b = decodeURI(a);
+    
+    console.log(JSON.parse(b));
+  </script>
+</body>
+
+</html>

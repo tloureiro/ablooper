@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html class="" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title></title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+
+  </style>
+</head>
+<body>
+
+  <div id="player"></div>
+
+
+  <script src="https://www.youtube.com/iframe_api" async></script>
+  <script>
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('player', {
+        height: '390',
+        width: '640',
+        videoId: 'M7lc1UVf-VE',
+        events: {
+          onReady: () => {
+            setInterval(() => {
+              if (player.getPlayerState() != 1){
+                player.playVideo();
+              }
+
+              if(player.getCurrentTime() < 10 || player.getCurrentTime() > 15) {
+                player.seekTo(10);
+              }
+            }, 200);
+          }
+        }
+      });
+    }
+  </script>
+</body>
+
+</html>
