@@ -27,15 +27,15 @@
       width: 70%;
     }
 
-    item {
+    interval {
       display: block;
     }
 
-    item .start, item .end {
+    .inteveral__start, .interval__end {
       width: 3rem;
     }
 
-    #item--template {
+    #intervalTemplate {
       display: none;
     }
 
@@ -49,25 +49,43 @@
     </div>
   </div>
 
-  <item id="item--template">
+  <interval id="intervalTemplate">
     <button>▶️</button>
-    <input class="title" type="text" placeholder="title"/>
-    <input class="start" type="number" placeholder="start" min="0"/>
-    <input class="end" type="number" placeholder="end" max="99999"/>
-    <button class="add--item">+</button>
-    <button class="remove--item">-</button>
-  </item>
+    <input class="interval__title" type="text" placeholder="title"/>
+    <input class="interval__start" type="number" placeholder="start" min="0"/>
+    <input class="interval__end" type="number" placeholder="end" max="99999"/>
+    <button class="interval__addItem">+</button>
+    <button class="interval__removeItem">-</button>
+  </interval>
   <script>
 
-    //change to interval, move to bem -> https://css-tricks.com/bem-101/
-    function addItem() {
-      document.querySelector('#sidebar').appendChild(document.querySelector('#item--template').cloneNode(true)).removeAttribute('id');
+    function addInterval(node) {
+
+      const clonedIntervalNode = document.querySelector('#intervalTemplate').cloneNode(true);
+      clonedIntervalNode.removeAttribute('id');
+
+      if (node) { //checar se eh o ultimo
+        node.parentNode.parentNode.insertBefore(clonedIntervalNode, node.parentNode.nextSibling);
+      } else {
+        document.querySelector('#sidebar').appendChild(clonedIntervalNode);
+      }
+      
     }
     
-
     function bindAll() {
-      document.querySelector('item .add')
+
+      document.querySelectorAll('.interval__addItem').forEach( (item) => {
+
+        item.onclick = (event) => { 
+          addInterval(event.target);
+        }
+
+      });
     }
+
+    addInterval();
+    addInterval();
+    bindAll();
   </script>
 </body>
 
