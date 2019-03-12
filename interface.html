@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html class="" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title></title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    html,body {
+      margin:0;
+      height: 100%;
+    }
+    #content {
+      display: flex;
+      height: 100%;
+    }
+    #sidebar {
+      outline: 1px black solid;
+      width: 30%;
+      overflow-y: auto;
+    }
+
+    #videoContainer {
+      outline: 1px black solid;
+      width: 70%;
+      align-items: center;
+      display: flex;
+      flex-direction: column;
+    }
+
+    interval {
+      display: block;
+    }
+
+    .inteveral__start, .interval__end {
+      width: 3rem;
+    }
+
+    #intervalTemplate {
+      display: none;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="content">
+    <aside id="sidebar">
+    </aside>
+    <div id="videoContainer">
+      <input id="videoContainer__id" type="text" placeholder="Youtube URL or ID"/>
+    </div>
+  </div>
+
+  <interval id="intervalTemplate">
+    <button>▶️</button>
+    <input class="interval__title" type="text" placeholder="title"/>
+    <input class="interval__start" type="number" placeholder="start" min="0"/>
+    <input class="interval__end" type="number" placeholder="end" max="99999"/>
+    <button class="interval__addItem">+</button>
+    <button class="interval__removeItem">-</button>
+  </interval>
+  <script>
+
+    function bindAll() {
+      for (let i = 0; i < document.querySelectorAll('.interval__addItem').length; i += 1) {
+        const itemAdd = document.querySelectorAll('.interval__addItem')[i];
+        itemAdd.onclick = (event) => {
+          addInterval(event.target);
+        };
+
+        const itemRemove = document.querySelectorAll('.interval__removeItem')[i];
+        itemRemove.onclick = (event) => {
+          removeInterval(event.target);
+        };
+      }
+
+      document.querySelector('#videoContainer__id').onchange = (event) => {
+        console.log(event);
+      };
+    }
+
+    function addInterval(node) {
+      const clonedIntervalNode = document.querySelector('#intervalTemplate').cloneNode(true);
+      clonedIntervalNode.removeAttribute('id');
+      clonedIntervalNode.className += 'interval--displayed';
+
+      if (node && node.parentNode.nextSibling) {
+        node.parentNode.parentNode.insertBefore(clonedIntervalNode, node.parentNode.nextSibling);
+      } else {
+        document.querySelector('#sidebar').appendChild(clonedIntervalNode);
+      }
+
+      bindAll();
+    }
+
+    function removeInterval(node) {
+      if (document.querySelectorAll('interval.interval--displayed').length > 1) {
+        node.parentNode.remove();
+        bindAll();
+      }
+    }
+
+    addInterval();
+    bindAll();
+  </script>
+</body>
+
+</html>

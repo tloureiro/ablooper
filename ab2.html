@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html class="" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title></title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+
+  </style>
+</head>
+<body>
+
+  <div id="player"></div>
+  <button id="button1">1</button>
+  <button id="button2">2</button>
+
+
+  <script src="https://www.youtube.com/iframe_api" async></script>
+  <script>
+    function playVideo(event) {
+
+      if(event.target.id == 'button1'){
+        player.loadVideoById('dHI4BMzCNhM');
+        player.playVideo();
+      } else {
+        player.loadVideoById('ihNyjZv5pVo');
+        player.playVideo();
+      }
+      console.log(event.target.id);
+
+    }
+    function onYouTubeIframeAPIReady() {
+
+      player = new YT.Player('player', {
+        height: '390',
+        width: '640',
+        videoId: 'M7lc1UVf-VE',
+      });
+      document.querySelector('#button1').addEventListener('click', playVideo);
+      document.querySelector('#button2').addEventListener('click', playVideo);
+    }
+  </script>
+</body>
+
+</html>

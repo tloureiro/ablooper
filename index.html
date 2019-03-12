@@ -51,20 +51,47 @@
     </aside>
     <div id="videoContainer">
       <input id="videoContainer__id" type="text" placeholder="Youtube URL or ID"/>
+      <input id="videoContainer__title" type="text" placeholder="Video title"/>
+      <div id="videoContainer__player"></div>
     </div>
   </div>
 
   <interval id="intervalTemplate">
-    <button>▶️</button>
+    <button class="interval__play">▶️</button>
     <input class="interval__title" type="text" placeholder="title"/>
     <input class="interval__start" type="number" placeholder="start" min="0"/>
     <input class="interval__end" type="number" placeholder="end" max="99999"/>
     <button class="interval__addItem">+</button>
     <button class="interval__removeItem">-</button>
   </interval>
+  <script src="https://www.youtube.com/iframe_api" async></script>
   <script>
 
+    class Debouncer {
+      constructor(delay) {
+        this.lastExecuted = null;
+        this.delay = delay;
+      }
+    
+      run(fn) {
+        if (this.lastExecuted) {
+          clearTimeout(this.lastExecuted);
+          this.lastExecuted = null;
+        }
+
+        this.lastExecuted = setTimeout(fn, this.delay);
+      }
+    }
+
     function bindAll() {
+      const debouncer = new Debouncer(1000);
+      const updateHashFromInputs = () => {
+        debouncer.run(() => {
+          const state = getStateFromInputs();
+          window.location.hash = encodeURI(JSON.stringify(state));
+        });
+      };
+
       for (let i = 0; i < document.querySelectorAll('.interval__addItem').length; i += 1) {
         const itemAdd = document.querySelectorAll('.interval__addItem')[i];
         itemAdd.onclick = (event) => {
@@ -75,11 +102,44 @@
         itemRemove.onclick = (event) => {
           removeInterval(event.target);
         };
+
+        const playButton = document.querySelectorAll('.interval__play')[i];
+        playButton.onclick = (event) => {
+          const start = event.target.parentNode.querySelector('.interval__start').value;
+          const end = event.target.parentNode.querySelector('.interval__end').value;
+
+          loopVideo(start, end);
+        };
+
+        document.querySelectorAll('.interval__title')[i].oninput = updateHashFromInputs;
+        document.querySelectorAll('.interval__start')[i].oninput = updateHashFromInputs;
+        document.querySelectorAll('.interval__end')[i].oninput = updateHashFromInputs;
       }
 
-      document.querySelector('#videoContainer__id').onchange = (event) => {
-        console.log(event);
-      };
+      document.querySelector('#videoContainer__id').oninput = updateHashFromInputs;
+      document.querySelector('#videoContainer__title').oninput = updateHashFromInputs;
+    }
+
+    function loopVideo(start, end) {
+
+      if (start === null || end === null || Number.isNaN(start)
+      || Number.isNaN(end) || parseInt(start, 10) > parseInt(end, 10)) {
+        console.error('start or end can\'t be null or reversed');
+      }
+
+      if (player.timerID) {
+        clearInterval(player.timerID);
+      }
+
+      player.timerID = setInterval(() => {
+        if (player.getPlayerState() !== 1) {
+          player.playVideo();
+        }
+
+        if(player.getCurrentTime() < start || player.getCurrentTime() > end) {
+          player.seekTo(start);
+        }
+      }, 200);
     }
 
     function addInterval(node) {
@@ -103,8 +163,75 @@
       }
     }
 
-    addInterval();
-    bindAll();
+    function getStateFromURL() {
+      const hash = window.location.hash.substring(1);
+
+      if (!hash) {
+        return null;
+      }
+
+      try {
+        return JSON.parse(decodeURI(hash));
+      } catch (error) {
+        return null;
+      }
+    }
+
+    // TODO
+    function isStateValid(state) {
+      return true;
+    }
+
+    function populateInputs(state) {
+      document.querySelector('#videoContainer__id').value = state.id;
+      document.querySelector('#videoContainer__title').value = state.title;
+      state.intervals.forEach((interval) => {
+        addInterval();
+        const lastInterval = document.querySelector('.interval--displayed:last-child');
+        lastInterval.querySelector('.interval__title').value = interval.title;
+        [lastInterval.querySelector('.interval__start').value, lastInterval.querySelector('.interval__end').value] = interval.range;
+      });
+    }
+
+    function getStateFromInputs() {
+      const state = {};
+
+      state.title = document.querySelector('#videoContainer__title').value;
+      state.id = document.querySelector('#videoContainer__id').value;
+
+      state.intervals = [];
+
+      document.querySelectorAll('.interval--displayed').forEach((item) => {
+        const interval = {};
+        interval.title = item.querySelector('.interval__title').value;
+        interval.range = [];
+        interval.range[0] = item.querySelector('.interval__start').value;
+        interval.range[1] = item.querySelector('.interval__end').value;
+        state.intervals.push(interval);
+      });
+
+      return state;
+    }
+
+    // starting point here
+    function onYouTubeIframeAPIReady() {
+
+      let state = getStateFromURL();
+
+      if (state && isStateValid(state)) { // loading state
+        player = new YT.Player('videoContainer__player', {
+          height: '390',
+          width: '640',
+          videoId: state.id,
+        });
+
+        populateInputs(state);
+      } else { // new state
+        addInterval();
+      }
+
+      bindAll();
+    }
   </script>
 </body>
 
