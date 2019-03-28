@@ -87,7 +87,7 @@
       const debouncer = new Debouncer(1000);
       const updateHashFromInputs = () => {
         debouncer.run(() => {
-          const state = getStateFromInputs();
+          updateStateFromInputs();
           window.location.hash = encodeURI(JSON.stringify(state));
         });
       };
@@ -96,11 +96,15 @@
         const itemAdd = document.querySelectorAll('.interval__addItem')[i];
         itemAdd.onclick = (event) => {
           addInterval(event.target);
+          updateStateFromInputs();
+          window.location.hash = encodeURI(JSON.stringify(state));
         };
 
         const itemRemove = document.querySelectorAll('.interval__removeItem')[i];
         itemRemove.onclick = (event) => {
           removeInterval(event.target);
+          updateStateFromInputs();
+          window.location.hash = encodeURI(JSON.stringify(state));
         };
 
         const playButton = document.querySelectorAll('.interval__play')[i];
@@ -116,7 +120,19 @@
         document.querySelectorAll('.interval__end')[i].oninput = updateHashFromInputs;
       }
 
-      document.querySelector('#videoContainer__id').oninput = updateHashFromInputs;
+      document.querySelector('#videoContainer__id').oninput = () => {
+        debouncer.run(() => {
+          updateStateFromInputs();
+          window.location.hash = encodeURI(JSON.stringify(state));
+
+          if (typeof player !== 'undefined') {
+            player.loadVideoById(state.id);
+          } else {
+            initPlayer();
+          }
+        });
+      };
+
       document.querySelector('#videoContainer__title').oninput = updateHashFromInputs;
     }
 
@@ -171,18 +187,18 @@
       }
 
       try {
-        return JSON.parse(decodeURI(hash));
+        state = JSON.parse(decodeURI(hash));
       } catch (error) {
         return null;
       }
     }
 
     // TODO
-    function isStateValid(state) {
+    function isStateValid() {
       return true;
     }
 
-    function populateInputs(state) {
+    function populateInputs() {
       document.querySelector('#videoContainer__id').value = state.id;
       document.querySelector('#videoContainer__title').value = state.title;
       state.intervals.forEach((interval) => {
@@ -193,8 +209,10 @@
       });
     }
 
-    function getStateFromInputs() {
-      const state = {};
+    function updateStateFromInputs() {
+      if (typeof state === 'undefined') {
+        state = {};
+      }
 
       state.title = document.querySelector('#videoContainer__title').value;
       state.id = document.querySelector('#videoContainer__id').value;
@@ -209,24 +227,30 @@
         interval.range[1] = item.querySelector('.interval__end').value;
         state.intervals.push(interval);
       });
-
-      return state;
     }
 
     // starting point here
     function onYouTubeIframeAPIReady() {
+      bindAll();
+      getStateFromURL();
+      if (typeof state !== "undefined") {
+        populateInputs();
+        initPlayer();
+      }
+    }
 
-      let state = getStateFromURL();
+    function initPlayer() {
+      getStateFromURL();
 
-      if (state && isStateValid(state)) { // loading state
+      if (typeof state !== "undefined" && state && isStateValid(state)) { // loading state
         player = new YT.Player('videoContainer__player', {
           height: '390',
           width: '640',
           videoId: state.id,
         });
+      }
 
-        populateInputs(state);
-      } else { // new state
+      if (document.querySelectorAll('interval.interval--displayed').length === 0) {
         addInterval();
       }
 
