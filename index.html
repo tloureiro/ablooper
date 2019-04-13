@@ -35,12 +35,26 @@
       display: block;
     }
 
-    .inteveral__start, .interval__end {
+    .interval__start, .interval__end {
       width: 3rem;
     }
 
     #intervalTemplate {
       display: none;
+    }
+
+    .loadingContainer {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      background-color: white;
+      top: 0;
+      justify-content: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      opacity: 1;
+      transition: opacity 0.3s ease-in-out;
     }
 
   </style>
@@ -57,13 +71,47 @@
   </div>
 
   <interval id="intervalTemplate">
-    <button class="interval__play">▶️</button>
+    <button class="interval__play">▶</button>
     <input class="interval__title" type="text" placeholder="title"/>
-    <input class="interval__start" type="number" placeholder="start" min="0"/>
-    <input class="interval__end" type="number" placeholder="end" max="99999"/>
+    <input class="interval__start" type="number" placeholder="start" min="0" max="9999"/>
+    <input class="interval__end" type="number" placeholder="end" min="0" max="9999"/>
     <button class="interval__addItem">+</button>
     <button class="interval__removeItem">-</button>
   </interval>
+
+  <div class="loadingContainer">
+    <svg width="38" height="38" viewBox="0 0 38 38" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient x1="8.042%" y1="0%" x2="65.682%" y2="23.865%" id="a">
+            <stop stop-color="black" stop-opacity="0" offset="0%"/>
+            <stop stop-color="black" stop-opacity=".631" offset="63.146%"/>
+            <stop stop-color="black" offset="100%"/>
+        </linearGradient>
+    </defs>
+    <g fill="none" fill-rule="evenodd">
+        <g transform="translate(1 1)">
+            <path d="M36 18c0-9.94-8.06-18-18-18" id="Oval-2" stroke="url(#a)" stroke-width="2">
+                <animateTransform
+                    attributeName="transform"
+                    type="rotate"
+                    from="0 18 18"
+                    to="360 18 18"
+                    dur="0.9s"
+                    repeatCount="indefinite" />
+            </path>
+            <circle fill="black" cx="36" cy="18" r="1">
+                <animateTransform
+                    attributeName="transform"
+                    type="rotate"
+                    from="0 18 18"
+                    to="360 18 18"
+                    dur="0.9s"
+                    repeatCount="indefinite" />
+            </circle>
+        </g>
+    </g>
+</svg>
+  </div>
   <script src="https://www.youtube.com/iframe_api" async></script>
   <script>
 
@@ -83,6 +131,34 @@
       }
     }
 
+    function addItemOnClick(event) {
+      addInterval(event.target);
+      updateStateFromInputs();
+      window.location.hash = encodeURI(JSON.stringify(state));
+    }
+
+    function itemRemoveOnClick(event) {
+      removeInterval(event.target);
+      updateStateFromInputs();
+      window.location.hash = encodeURI(JSON.stringify(state));
+    }
+
+    function playButtonOnClick(event) {
+      if (event.target.innerText === '▶') { // then play
+        const start = event.target.parentNode.querySelector('.interval__start').value;
+        const end = event.target.parentNode.querySelector('.interval__end').value;
+
+        if (start || end) {
+          event.target.innerText = '⏸';
+          loopVideo(start, end);
+        }
+      } else if (event.target.innerText === '⏸') { // then pause
+        clearInterval(player.timerID);
+        player.pauseVideo();
+        event.target.innerText = '▶';
+      }
+    }
+
     function bindAll() {
       const debouncer = new Debouncer(1000);
       const updateHashFromInputs = () => {
@@ -94,26 +170,14 @@
 
       for (let i = 0; i < document.querySelectorAll('.interval__addItem').length; i += 1) {
         const itemAdd = document.querySelectorAll('.interval__addItem')[i];
-        itemAdd.onclick = (event) => {
-          addInterval(event.target);
-          updateStateFromInputs();
-          window.location.hash = encodeURI(JSON.stringify(state));
-        };
+
+        itemAdd.onclick = addItemOnClick;
 
         const itemRemove = document.querySelectorAll('.interval__removeItem')[i];
-        itemRemove.onclick = (event) => {
-          removeInterval(event.target);
-          updateStateFromInputs();
-          window.location.hash = encodeURI(JSON.stringify(state));
-        };
+        itemRemove.onclick = itemRemoveOnClick;
 
         const playButton = document.querySelectorAll('.interval__play')[i];
-        playButton.onclick = (event) => {
-          const start = event.target.parentNode.querySelector('.interval__start').value;
-          const end = event.target.parentNode.querySelector('.interval__end').value;
-
-          loopVideo(start, end);
-        };
+        playButton.onclick = playButtonOnClick;
 
         document.querySelectorAll('.interval__title')[i].oninput = updateHashFromInputs;
         document.querySelectorAll('.interval__start')[i].oninput = updateHashFromInputs;
@@ -183,13 +247,13 @@
       const hash = window.location.hash.substring(1);
 
       if (!hash) {
-        return null;
+        return;
       }
 
       try {
         state = JSON.parse(decodeURI(hash));
       } catch (error) {
-        return null;
+        console.error(error);
       }
     }
 
@@ -229,28 +293,35 @@
       });
     }
 
-    // starting point here
-    function onYouTubeIframeAPIReady() {
-      bindAll();
-      getStateFromURL();
-      if (typeof state !== "undefined") {
-        populateInputs();
-        initPlayer();
-      }
+    function removeLoading() {
+      document.querySelector('.loadingContainer').style.opacity = '0';
+      setTimeout(() => {
+        document.querySelector('.loadingContainer').style.display = 'none';
+      }, 300);
     }
 
     function initPlayer() {
+
+      player = new YT.Player('videoContainer__player', {
+        height: '390',
+        width: '640',
+        videoId: state.id,
+      });
+    }
+
+    // starting point here
+    function onYouTubeIframeAPIReady() {
+      removeLoading();
+
       getStateFromURL();
 
-      if (typeof state !== "undefined" && state && isStateValid(state)) { // loading state
-        player = new YT.Player('videoContainer__player', {
-          height: '390',
-          width: '640',
-          videoId: state.id,
-        });
-      }
+      if (typeof state !== 'undefined') {
+        populateInputs();
 
-      if (document.querySelectorAll('interval.interval--displayed').length === 0) {
+        if (state.id) {
+          initPlayer();
+        }
+      } else {
         addInterval();
       }
 
