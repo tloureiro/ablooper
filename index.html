@@ -167,7 +167,13 @@
     }
 
     function playButtonOnClick(event) {
-      if (event.target.innerText === '▶') { // then play
+      if (event.target.innerText === '▶') { // reset any playing button back to play, then play
+        if (document.querySelector('.playing button')) {
+          document.querySelector('.playing button').innerText = '▶';
+          document.querySelector('.playing').classList.remove('playing');
+        }
+        event.target.parentElement.classList.add('playing');
+
         const start = event.target.parentNode.querySelector('.interval__start').value;
         const end = event.target.parentNode.querySelector('.interval__end').value;
 
@@ -175,7 +181,9 @@
           event.target.innerText = '⏸';
           loopVideo(start, end);
         }
-      } else if (event.target.innerText === '⏸') { // then pause
+      } else if (event.target.innerText === '⏸') { // remove playing class, then pause
+        event.target.parentElement.classList.remove('playing');
+
         clearInterval(player.timerID);
         player.pauseVideo();
         event.target.innerText = '▶';
