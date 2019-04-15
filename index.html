@@ -15,17 +15,20 @@
     }
     #content {
       display: flex;
+      flex-direction: column;
       height: 100%;
     }
     #sidebar {
       outline: 1px black solid;
-      width: 30%;
-      overflow-y: auto;
+      width: 100%;
+      overflow-y: visible;
+      padding-bottom: 3rem;
     }
 
     #videoContainer {
       outline: 1px black solid;
-      width: 70%;
+      width: 100%;
+      min-height: 400px;
       align-items: center;
       display: flex;
       flex-direction: column;
@@ -55,6 +58,26 @@
       align-items: center;
       opacity: 1;
       transition: opacity 0.3s ease-in-out;
+    }
+
+    @media (min-width:1000px) {
+      #content {
+        flex-direction: row;
+      }
+
+      #videoContainer {
+        width: 70%;
+      }
+
+      #sidebar {
+        width: 30%;
+        overflow-y: visible;
+      }
+
+      #videoContainer__player {
+        max-width: 640px;
+        max-height: 390px;
+      }
     }
 
   </style>
@@ -303,8 +326,8 @@
     function initPlayer() {
 
       player = new YT.Player('videoContainer__player', {
-        height: '390',
-        width: '640',
+        height: '100%',
+        width: '100%',
         videoId: state.id,
       });
     }
