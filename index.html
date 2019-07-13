@@ -78,6 +78,11 @@
         max-width: 640px;
         max-height: 390px;
       }
+
+      #secondsCounter {
+        margin-top: 3rem;
+        font-size: 3rem;
+      }
     }
 
   </style>
@@ -90,6 +95,7 @@
       <input id="videoContainer__id" type="text" placeholder="Youtube URL or ID"/>
       <input id="videoContainer__title" type="text" placeholder="Video title"/>
       <div id="videoContainer__player"></div>
+      <div id="secondsCounter">1</div>
     </div>
   </div>
 
@@ -338,6 +344,8 @@
         width: '100%',
         videoId: state.id,
       });
+
+      setInterval( () => { document.querySelector('#secondsCounter').textContent = Math.round(player.getCurrentTime()) }, 200 )
     }
 
     // starting point here
