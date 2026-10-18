@@ -1,6 +1,6 @@
 # GitHub setup
 
-These files are prepared locally. No repository settings, branches, releases, or remote files were changed by this setup.
+Setup completed on 2026-10-18: the user applied the repository settings below through GitHub, the workflows passed, and v1.1.0 was published. This document retains the setup checklist for reference; do not repeat it unless reconfiguring the repository. See [SESSION_HANDOFF.md](SESSION_HANDOFF.md) for verification details and the remaining unattended auto-merge check.
 
 ## 1. Push the files and run CI once
 
@@ -58,9 +58,9 @@ No personal access token, custom secret, or bot account is required. Workflows u
 
 ## Releases and versioning
 
-The next version is prepared as `1.1.0` in `package.json` and both root lockfile entries. `CHANGELOG.md` records the changes. It has not been released or tagged. Keep the historical `1.0` tag; use `vMAJOR.MINOR.PATCH` for new releases.
+Version `1.1.0` is recorded in `package.json` and both root lockfile entries, with a dated `CHANGELOG.md` section. [v1.1.0 was published on 2026-10-18](https://github.com/tloureiro/ablooper/releases/tag/v1.1.0), including `ablooper-v1.1.0.tar.gz`. Keep the historical `1.0` tag; use `vMAJOR.MINOR.PATCH` for new releases.
 
-For the first release, after this work lands and CI passes:
+The first release was completed using these steps (use the next version for future releases):
 
 1. Replace `Unreleased` in the `1.1.0` changelog heading with the release date and merge that change.
 2. Open [Actions → Release](https://github.com/tloureiro/ablooper/actions/workflows/release.yml).
