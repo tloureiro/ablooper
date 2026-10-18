@@ -2,7 +2,7 @@
 
 Versions use semantic versioning. The original `1.0` Git tag is retained; new tags use `vMAJOR.MINOR.PATCH`.
 
-## [1.1.0] - Unreleased
+## [1.1.0] - 2026-10-18
 
 ### Added
 
