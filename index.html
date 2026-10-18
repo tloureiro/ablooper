@@ -1,372 +1,70 @@
-<!DOCTYPE html>
-<html class="" lang="en">
-
+<!doctype html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title></title>
-  <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <style>
-    html,body {
-      margin:0;
-      height: 100%;
-    }
-    #content {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-    #sidebar {
-      outline: 1px black solid;
-      width: 100%;
-      overflow-y: visible;
-      padding-bottom: 3rem;
-    }
-
-    #videoContainer {
-      outline: 1px black solid;
-      width: 100%;
-      min-height: 400px;
-      align-items: center;
-      display: flex;
-      flex-direction: column;
-    }
-
-    interval {
-      display: block;
-    }
-
-    .interval__start, .interval__end {
-      width: 3rem;
-    }
-
-    #intervalTemplate {
-      display: none;
-    }
-
-    .loadingContainer {
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      background-color: white;
-      top: 0;
-      justify-content: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      opacity: 1;
-      transition: opacity 0.3s ease-in-out;
-    }
-
-    @media (min-width:1000px) {
-      #content {
-        flex-direction: row;
-      }
-
-      #videoContainer {
-        width: 70%;
-      }
-
-      #sidebar {
-        width: 30%;
-        overflow-y: visible;
-      }
-
-      #videoContainer__player {
-        max-width: 640px;
-        max-height: 390px;
-      }
-
-      #secondsCounter {
-        margin-top: 3rem;
-        font-size: 3rem;
-      }
-    }
-
-  </style>
+  <meta name="description" content="Loop sections of YouTube videos. Save start and end times and share sessions with a link.">
+  <meta name="theme-color" content="#f8fafc">
+  <title>AB Looper</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./src/app.js"></script>
 </head>
 <body>
-  <div id="content">
-    <aside id="sidebar">
-    </aside>
-    <div id="videoContainer">
-      <input id="videoContainer__id" type="text" placeholder="Youtube URL or ID"/>
-      <input id="videoContainer__title" type="text" placeholder="Video title"/>
-      <div id="videoContainer__player"></div>
-      <div id="secondsCounter">-</div>
+  <header class="site-header">
+    <a class="brand" href="./"><span class="brand-mark" aria-hidden="true">a↔b</span> AB Looper</a>
+    <button id="share" class="button button-outline" type="button">Share</button>
+  </header>
+  <main>
+    <section class="intro" aria-labelledby="page-title">
+      <h1 id="page-title">YouTube looper</h1>
+      <p>Load a video, set a start and end time, and repeat.</p>
+    </section>
+    <form id="video-form" class="video-form">
+      <div class="video-input">
+        <label for="video-url">Start with a YouTube video</label>
+        <input id="video-url" name="video" type="text" placeholder="Paste a YouTube link or video ID" autocomplete="off" spellcheck="false" aria-describedby="video-hint">
+      </div>
+      <button id="load-video" class="button button-dark" type="submit">Load video <span aria-hidden="true">→</span></button>
+      <p id="video-hint" class="field-hint">Works with regular videos, Shorts, and youtu.be links.</p>
+    </form>
+    <p id="message" class="message" role="status" aria-live="polite" hidden></p>
+    <div class="workspace">
+      <section class="video-panel" aria-label="Video player">
+        <div id="player-shell" class="player-shell">
+          <div id="player"></div>
+          <div id="player-placeholder" class="player-placeholder">
+            <span class="placeholder-mark" aria-hidden="true">▷</span>
+            <h2>No video loaded</h2>
+            <p>Enter a YouTube link above.</p>
+          </div>
+        </div>
+        <div class="player-toolbar">
+          <div><span class="time-label">Current time</span><output id="current-time" aria-label="Current video time">0:00</output><span id="duration"> / 0:00</span></div>
+          <span id="player-status" class="player-status">No video loaded</span>
+        </div>
+        <label class="session-label" for="session-title">Session name <span>optional</span></label>
+        <input id="session-title" class="session-title" type="text" placeholder="Session name" autocomplete="off">
+        <p class="privacy-note">Session details are saved in the URL.</p>
+      </section>
+      <section class="loops-panel" aria-labelledby="loops-heading">
+        <div class="panel-heading"><h2 id="loops-heading">Loops <span id="loop-count">01</span></h2><button id="add-loop" class="button button-outline" type="button">+ Add loop</button></div>
+        <p class="loops-hint">Set A and B in seconds or m:ss. Use “Set” to capture the playhead.</p>
+        <div id="loops" class="loops"></div>
+      </section>
     </div>
-  </div>
-
-  <interval id="intervalTemplate">
-    <button class="interval__play">▶</button>
-    <input class="interval__title" type="text" placeholder="title"/>
-    <input class="interval__start" type="number" placeholder="start" min="0" max="9999"/>
-    <input class="interval__end" type="number" placeholder="end" min="0" max="9999"/>
-    <button class="interval__addItem">+</button>
-    <button class="interval__removeItem">-</button>
-  </interval>
-
-  <div class="loadingContainer">
-    <svg width="38" height="38" viewBox="0 0 38 38" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-        <linearGradient x1="8.042%" y1="0%" x2="65.682%" y2="23.865%" id="a">
-            <stop stop-color="black" stop-opacity="0" offset="0%"/>
-            <stop stop-color="black" stop-opacity=".631" offset="63.146%"/>
-            <stop stop-color="black" offset="100%"/>
-        </linearGradient>
-    </defs>
-    <g fill="none" fill-rule="evenodd">
-        <g transform="translate(1 1)">
-            <path d="M36 18c0-9.94-8.06-18-18-18" id="Oval-2" stroke="url(#a)" stroke-width="2">
-                <animateTransform
-                    attributeName="transform"
-                    type="rotate"
-                    from="0 18 18"
-                    to="360 18 18"
-                    dur="0.9s"
-                    repeatCount="indefinite" />
-            </path>
-            <circle fill="black" cx="36" cy="18" r="1">
-                <animateTransform
-                    attributeName="transform"
-                    type="rotate"
-                    from="0 18 18"
-                    to="360 18 18"
-                    dur="0.9s"
-                    repeatCount="indefinite" />
-            </circle>
-        </g>
-    </g>
-</svg>
-  </div>
-  <script src="https://www.youtube.com/iframe_api" async></script>
-  <script>
-
-    class Debouncer {
-      constructor(delay) {
-        this.lastExecuted = null;
-        this.delay = delay;
-      }
-    
-      run(fn) {
-        if (this.lastExecuted) {
-          clearTimeout(this.lastExecuted);
-          this.lastExecuted = null;
-        }
-
-        this.lastExecuted = setTimeout(fn, this.delay);
-      }
-    }
-
-    function addItemOnClick(event) {
-      addInterval(event.target);
-      updateStateFromInputs();
-      window.location.hash = encodeURI(JSON.stringify(state));
-    }
-
-    function itemRemoveOnClick(event) {
-      removeInterval(event.target);
-      updateStateFromInputs();
-      window.location.hash = encodeURI(JSON.stringify(state));
-    }
-
-    function playButtonOnClick(event) {
-      if (event.target.innerText === '▶') { // reset any playing button back to play, then play
-        if (document.querySelector('.playing button')) {
-          document.querySelector('.playing button').innerText = '▶';
-          document.querySelector('.playing').classList.remove('playing');
-        }
-        event.target.parentElement.classList.add('playing');
-
-        const start = event.target.parentNode.querySelector('.interval__start').value;
-        const end = event.target.parentNode.querySelector('.interval__end').value;
-
-        if (start || end) {
-          event.target.innerText = '⏸';
-          loopVideo(start, end);
-        }
-      } else if (event.target.innerText === '⏸') { // remove playing class, then pause
-        event.target.parentElement.classList.remove('playing');
-
-        clearInterval(player.timerID);
-        player.pauseVideo();
-        event.target.innerText = '▶';
-      }
-    }
-
-    function bindAll() {
-      const debouncer = new Debouncer(1000);
-      const updateHashFromInputs = () => {
-        debouncer.run(() => {
-          updateStateFromInputs();
-          window.location.hash = encodeURI(JSON.stringify(state));
-        });
-      };
-
-      for (let i = 0; i < document.querySelectorAll('.interval__addItem').length; i += 1) {
-        const itemAdd = document.querySelectorAll('.interval__addItem')[i];
-
-        itemAdd.onclick = addItemOnClick;
-
-        const itemRemove = document.querySelectorAll('.interval__removeItem')[i];
-        itemRemove.onclick = itemRemoveOnClick;
-
-        const playButton = document.querySelectorAll('.interval__play')[i];
-        playButton.onclick = playButtonOnClick;
-
-        document.querySelectorAll('.interval__title')[i].oninput = updateHashFromInputs;
-        document.querySelectorAll('.interval__start')[i].oninput = updateHashFromInputs;
-        document.querySelectorAll('.interval__end')[i].oninput = updateHashFromInputs;
-      }
-
-      document.querySelector('#videoContainer__id').oninput = () => {
-        debouncer.run(() => {
-          updateStateFromInputs();
-          window.location.hash = encodeURI(JSON.stringify(state));
-
-          if (typeof player !== 'undefined') {
-            player.loadVideoById(state.id);
-          } else {
-            initPlayer();
-          }
-        });
-      };
-
-      document.querySelector('#videoContainer__title').oninput = updateHashFromInputs;
-    }
-
-    function loopVideo(start, end) {
-
-      if (start === null || end === null || Number.isNaN(start)
-      || Number.isNaN(end) || parseInt(start, 10) > parseInt(end, 10)) {
-        console.error('start or end can\'t be null or reversed');
-      }
-
-      if (player.timerID) {
-        clearInterval(player.timerID);
-      }
-
-      player.timerID = setInterval(() => {
-        if (player.getPlayerState() !== 1) {
-          player.playVideo();
-        }
-
-        if(player.getCurrentTime() < start || player.getCurrentTime() > end) {
-          player.seekTo(start);
-        }
-      }, 200);
-    }
-
-    function addInterval(node) {
-      const clonedIntervalNode = document.querySelector('#intervalTemplate').cloneNode(true);
-      clonedIntervalNode.removeAttribute('id');
-      clonedIntervalNode.className += 'interval--displayed';
-
-      if (node && node.parentNode.nextSibling) {
-        node.parentNode.parentNode.insertBefore(clonedIntervalNode, node.parentNode.nextSibling);
-      } else {
-        document.querySelector('#sidebar').appendChild(clonedIntervalNode);
-      }
-
-      bindAll();
-    }
-
-    function removeInterval(node) {
-      if (document.querySelectorAll('interval.interval--displayed').length > 1) {
-        node.parentNode.remove();
-        bindAll();
-      }
-    }
-
-    function getStateFromURL() {
-      const hash = window.location.hash.substring(1);
-
-      if (!hash) {
-        return;
-      }
-
-      try {
-        state = JSON.parse(decodeURI(hash));
-      } catch (error) {
-        console.error(error);
-      }
-    }
-
-    // TODO
-    function isStateValid() {
-      return true;
-    }
-
-    function populateInputs() {
-      document.querySelector('#videoContainer__id').value = state.id;
-      document.querySelector('#videoContainer__title').value = state.title;
-      state.intervals.forEach((interval) => {
-        addInterval();
-        const lastInterval = document.querySelector('.interval--displayed:last-child');
-        lastInterval.querySelector('.interval__title').value = interval.title;
-        [lastInterval.querySelector('.interval__start').value, lastInterval.querySelector('.interval__end').value] = interval.range;
-      });
-    }
-
-    function updateStateFromInputs() {
-      if (typeof state === 'undefined') {
-        state = {};
-      }
-
-      state.title = document.querySelector('#videoContainer__title').value;
-      state.id = document.querySelector('#videoContainer__id').value;
-
-      state.intervals = [];
-
-      document.querySelectorAll('.interval--displayed').forEach((item) => {
-        const interval = {};
-        interval.title = item.querySelector('.interval__title').value;
-        interval.range = [];
-        interval.range[0] = item.querySelector('.interval__start').value;
-        interval.range[1] = item.querySelector('.interval__end').value;
-        state.intervals.push(interval);
-      });
-    }
-
-    function removeLoading() {
-      document.querySelector('.loadingContainer').style.opacity = '0';
-      setTimeout(() => {
-        document.querySelector('.loadingContainer').style.display = 'none';
-      }, 300);
-    }
-
-    function initPlayer() {
-
-      player = new YT.Player('videoContainer__player', {
-        height: '100%',
-        width: '100%',
-        videoId: state.id,
-      });
-
-      setInterval( () => { document.querySelector('#secondsCounter').textContent = Math.round(player.getCurrentTime()) }, 200 )
-    }
-
-    // starting point here
-    function onYouTubeIframeAPIReady() {
-      removeLoading();
-
-      getStateFromURL();
-
-      if (typeof state !== 'undefined') {
-        populateInputs();
-
-        if (state.id) {
-          initPlayer();
-        }
-      } else {
-        addInterval();
-      }
-
-      bindAll();
-    }
-  </script>
+  </main>
+  <footer><a href="https://github.com/tloureiro/ablooper">View on GitHub <span aria-hidden="true">↗</span></a></footer>
+  <template id="loop-template">
+    <article class="loop-card">
+      <div class="loop-heading"><span class="loop-number" aria-hidden="true"></span><input class="loop-title" type="text" placeholder="Name this loop" aria-label="Loop name"><button class="remove-loop icon-button" type="button" aria-label="Remove loop" title="Remove loop">×</button></div>
+      <div class="range-inputs">
+        <label class="time-field"><span>A <span>START</span></span><span class="time-control"><input class="loop-start" type="text" inputmode="decimal" placeholder="0:00" aria-label="A start time"><button class="set-start" type="button" title="Set A to current video time" aria-label="Set A to current video time">Set</button></span></label>
+        <span class="range-arrow" aria-hidden="true">→</span>
+        <label class="time-field"><span>B <span>END</span></span><span class="time-control"><input class="loop-end" type="text" inputmode="decimal" placeholder="0:10" aria-label="B end time"><button class="set-end" type="button" title="Set B to current video time" aria-label="Set B to current video time">Set</button></span></label>
+      </div>
+      <p class="loop-error" role="alert" hidden></p>
+      <button class="play-loop button" type="button" aria-pressed="false">▶ Play loop</button>
+    </article>
+  </template>
 </body>
-
 </html>
