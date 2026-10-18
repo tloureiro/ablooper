@@ -33,7 +33,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Enable squash auto-merge for eligible updates
-        uses: actions/github-script@373c709c69115d41ff229c7e5df9f8788daa9553 # v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
