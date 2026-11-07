@@ -8,7 +8,7 @@ npx playwright install chromium firefox webkit
 npm run check
 ```
 
-On a fresh Linux machine, use `npx playwright install --with-deps chromium firefox webkit` to install browser system libraries too. CI does this automatically.
+On a fresh Linux machine, use `npx playwright install --with-deps chromium firefox webkit` to install browser system libraries too. CI does this automatically. Browser jobs use Ubuntu 24.04 to keep the Playwright dependency installation on the same supported Ubuntu release as the local Docker test image.
 
 ## Test layers
 
